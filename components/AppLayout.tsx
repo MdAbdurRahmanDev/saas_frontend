@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Sidebar from './Sidebar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -58,18 +59,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Bottom Navigation */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--sidebar-bg)] border-t border-gray-800 flex items-center justify-around h-16 px-2">
-          <a href="#" className="flex flex-col items-center justify-center w-full h-full text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition">
+          <Link href="/" className="flex flex-col items-center justify-center w-full h-full text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
             <span className="text-[10px] font-medium">Home</span>
-          </a>
-          <a href="#" className="flex flex-col items-center justify-center w-full h-full text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition">
+          </Link>
+          <Link href="/users" className="flex flex-col items-center justify-center w-full h-full text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span className="text-[10px] font-medium">Users</span>
-          </a>
-          <a href="#" className="flex flex-col items-center justify-center w-full h-full text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition">
+          </Link>
+          <Link href="/balance/history" className="flex flex-col items-center justify-center w-full h-full text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             <span className="text-[10px] font-medium">Balance</span>
-          </a>
+          </Link>
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
             className="flex flex-col items-center justify-center w-full h-full text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition"

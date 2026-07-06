@@ -166,7 +166,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean, onClose
               {hasChildren ? (
                 <button
                   onClick={() => toggleMenu(item.name!)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${isActive
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${isActive
                       ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-text-hover)] border-l-2 border-[var(--sidebar-active-border)]'
                       : 'text-[var(--sidebar-text)] hover:text-[var(--sidebar-text-hover)] hover:bg-[var(--sidebar-active-bg)] border-l-2 border-transparent'
                     }`}
