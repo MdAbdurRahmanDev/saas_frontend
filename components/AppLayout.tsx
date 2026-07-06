@@ -2,16 +2,42 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 import Sidebar from './Sidebar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [adminRole, setAdminRole] = useState('Admin');
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const token = Cookies.get('admin_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role) {
+          // Format role: "superadmin" -> "Super Admin", "staff" -> "Staff"
+          const formattedRole = payload.role === 'superadmin' ? 'Super Admin' : 
+                               payload.role.charAt(0).toUpperCase() + payload.role.slice(1);
+          setAdminRole(formattedRole);
+        }
+      } catch (e) {
+        console.error('Failed to decode token');
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    Cookies.remove('admin_token');
+    router.push('/login');
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--main-bg)] text-[var(--text-primary)] relative">
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -25,7 +51,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Header */}
         <header className="h-16 flex-shrink-0 flex items-center px-3 md:px-4 justify-between" style={{ background: 'linear-gradient(to right, var(--header-bg-start), var(--header-bg-end))' }}>
           <div className="flex items-center">
-            <button 
+            <button
               className="text-white mr-2 md:mr-4 md:hidden p-2"
               onClick={() => setIsMobileMenuOpen(true)}
             >
@@ -35,15 +61,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="hidden md:inline">SYSTEM / </span><span className="font-bold">DASHBOARD</span>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2 md:space-x-3">
+            <div className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-md text-xs font-bold border border-indigo-500/30">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <span>{adminRole}</span>
+            </div>
+            
             <button className="p-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition flex-shrink-0">
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             </button>
             <button className="hidden md:flex items-center space-x-1 px-3 py-1.5 bg-green-500/20 text-green-300 rounded-md text-xs font-semibold border border-green-500/30 hover:bg-green-500/30 transition">
               <span>✨ Clean Empty Rooms</span>
             </button>
-            <button className="hidden md:block px-4 py-1.5 bg-white/20 text-white rounded-md text-sm font-medium hover:bg-white/30 transition">
+            <button
+              onClick={handleLogout}
+              className="hidden md:block px-4 py-1.5 bg-white/20 text-white rounded-md text-sm font-medium hover:bg-white/30 transition"
+            >
               Log Out
             </button>
             <button className="px-3 py-1.5 md:px-4 md:py-1.5 bg-white text-black rounded-md text-xs md:text-sm font-semibold hover:bg-gray-100 transition shadow flex-shrink-0">
@@ -71,7 +105,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             <span className="text-[10px] font-medium">Balance</span>
           </Link>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="flex flex-col items-center justify-center w-full h-full text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition"
           >
