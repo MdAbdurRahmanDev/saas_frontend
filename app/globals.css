@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Sidebar Colors */
+  --sidebar-bg: #000000;
+  --sidebar-text: #9ca3af;
+  --sidebar-text-hover: #ffffff;
+  --sidebar-active-bg: #27272a;
+  --sidebar-active-border: #eab308;
+
+  /* Header Colors */
+  --header-bg-start: #000000;
+  --header-bg-end: #000002;
+  --header-text: #000000;
+
+  /* Main & Card Colors */
+  --main-bg: #0c0c2c;
+  --card-bg: #1f2937;
+  --card-bg-light: #374151;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+
+  /* Specific Card Backgrounds */
+  --card-bg-teal: #042f2e;
+  --card-bg-purple: #2e1065;
+  --card-bg-pink: #4c0519;
+  --card-bg-blue: #1e3a8a;
+  --card-bg-yellow: #422006;
+  --card-bg-green: #064e3b;
+  --card-bg-brown: #451a03;
+
+  /* Button Colors */
+  --btn-yellow: #ca8a04;
+  --btn-green: #16a34a;
+  --btn-pink: #be185d;
+  --btn-cyan: #0891b2;
+  --btn-blue: #2563eb;
+  --btn-white: #ffffff;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-hover: var(--sidebar-text-hover);
+  --color-sidebar-active: var(--sidebar-active-bg);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-main: var(--main-bg);
+  --color-card: var(--card-bg);
+  --color-card-light: var(--card-bg-light);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+
+  --color-card-teal: var(--card-bg-teal);
+  --color-card-purple: var(--card-bg-purple);
+  --color-card-pink: var(--card-bg-pink);
+  --color-card-blue: var(--card-bg-blue);
+  --color-card-yellow: var(--card-bg-yellow);
+  --color-card-green: var(--card-bg-green);
+  --color-card-brown: var(--card-bg-brown);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--main-bg);
+  color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.custom-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.custom-scrollbar,
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

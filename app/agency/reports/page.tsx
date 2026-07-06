@@ -1,0 +1,167 @@
+"use client";
+
+import React, { useState } from 'react';
+
+export default function AgencyReportsPage() {
+  const [selectedAgency, setSelectedAgency] = useState('all');
+
+  const mockReport = [
+    { id: 1, hostName: 'Emma Watson', hostId: 'HW123', streamTime: '120h', diamonds: 450000, commission: '$450.00' },
+    { id: 2, hostName: 'John Wick', hostId: 'JW777', streamTime: '80h', diamonds: 150000, commission: '$150.00' },
+    { id: 3, hostName: 'Lara Croft', hostId: 'LC111', streamTime: '210h', diamonds: 850000, commission: '$850.00' },
+  ];
+
+  return (
+    <div className="flex flex-col space-y-6 max-w-7xl mx-auto pb-12">
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4 sm:gap-0 mb-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white mb-2">Agency Reports</h1>
+          <p className="text-[var(--text-secondary)] text-sm">
+            Generate and export detailed performance reports per agency.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <button className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold shadow-lg transition-colors flex items-center gap-2 w-full md:w-auto justify-center">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Export to Excel
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 shadow-sm flex flex-col md:flex-row gap-5 items-end">
+        <div className="flex-1 w-full flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select Agency</label>
+            <select 
+              value={selectedAgency}
+              onChange={(e) => setSelectedAgency(e.target.value)}
+              className="w-full bg-[#18181b] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+            >
+              <option value="all">All Agencies Overview</option>
+              <option value="alpha">Alpha Entertainment (A-992)</option>
+              <option value="beta">Beta Streams (B-114)</option>
+              <option value="gamma">Gamma Talent (G-882)</option>
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Or Search UUID</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </span>
+              <input 
+                type="text" 
+                placeholder="Agency UUID..."
+                className="w-full bg-[#18181b] border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-all font-mono"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex-[0.8] w-full">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Date Range</label>
+          <div className="flex items-center gap-2">
+            <input type="date" className="w-full bg-[#18181b] border border-gray-700 rounded-lg px-3 py-3 text-sm text-gray-300 focus:outline-none focus:border-indigo-500" defaultValue="2024-01-01" />
+            <span className="text-gray-500">to</span>
+            <input type="date" className="w-full bg-[#18181b] border border-gray-700 rounded-lg px-3 py-3 text-sm text-gray-300 focus:outline-none focus:border-indigo-500" defaultValue="2024-01-31" />
+          </div>
+        </div>
+        <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors h-[46px] whitespace-nowrap w-full md:w-auto">
+          Generate
+        </button>
+      </div>
+
+      {/* Selected Agency Profile Banner */}
+      <div className="bg-gradient-to-r from-indigo-900/40 to-[var(--card-bg)] rounded-xl p-6 border border-indigo-500/20 shadow-lg flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+        
+        <div className="w-20 h-20 rounded-full bg-indigo-900/80 border-2 border-indigo-500/50 flex items-center justify-center text-indigo-300 text-3xl font-bold shadow-[0_0_15px_rgba(99,102,241,0.3)] relative z-10 shrink-0">
+          A
+        </div>
+        
+        <div className="flex-1 text-center md:text-left relative z-10">
+          <div className="flex items-center justify-center md:justify-start gap-3 mb-1">
+            <h2 className="text-2xl font-bold text-white">Alpha Entertainment</h2>
+            <span className="bg-green-500/10 text-green-400 text-[10px] px-2 py-0.5 rounded border border-green-500/20 uppercase tracking-wider font-bold">Verified Agency</span>
+          </div>
+          <p className="text-indigo-300 font-mono text-sm mb-3">Agency ID: A-992</p>
+          
+          <div className="flex flex-wrap justify-center md:justify-start gap-4">
+            <div className="flex items-center gap-1.5 bg-[#18181b]/80 px-3 py-1.5 rounded-lg border border-gray-700/50 text-xs">
+              <span className="text-gray-400">Owner:</span>
+              <span className="text-gray-200 font-semibold">Alex Johnson</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-[#18181b]/80 px-3 py-1.5 rounded-lg border border-gray-700/50 text-xs">
+              <span className="text-gray-400">Owner UUID:</span>
+              <span className="text-gray-200 font-mono">123231445</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-[#18181b]/80 px-3 py-1.5 rounded-lg border border-gray-700/50 text-xs">
+              <span className="text-gray-400">Joined:</span>
+              <span className="text-gray-200 font-semibold">Jan 15, 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-bl-full blur-xl -mr-2 -mt-2"></div>
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1 relative z-10">Total Active Hosts</div>
+          <div className="text-2xl font-bold text-white relative z-10">45</div>
+        </div>
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 shadow-sm relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-bl-full blur-xl -mr-2 -mt-2"></div>
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1 relative z-10">Host Diamonds</div>
+          <div className="text-2xl font-bold text-cyan-400 relative z-10">1,450,000 <span className="text-sm">💎</span></div>
+        </div>
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 shadow-sm relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-bl-full blur-xl -mr-2 -mt-2"></div>
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1 relative z-10">Total Host Payout</div>
+          <div className="text-2xl font-bold text-white relative z-10">$2,900.00</div>
+        </div>
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 shadow-sm relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-bl-full blur-xl -mr-2 -mt-2"></div>
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1 relative z-10">Agency Commission</div>
+          <div className="text-2xl font-bold text-green-400 relative z-10">$145.00</div>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-[var(--card-bg)] rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+        <div className="p-4 border-b border-gray-800 bg-[#18181b]">
+          <h3 className="font-bold text-white">Host Contribution Breakdown</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#18181b] border-b border-gray-800">
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Host</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Stream Time</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Diamonds Earned</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Agency Commission Cut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {mockReport.map((row) => (
+                <tr key={row.id} className="hover:bg-[#1f1f23] transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-white">{row.hostName}</div>
+                    <div className="text-xs text-gray-500">ID: {row.hostId}</div>
+                  </td>
+                  <td className="px-6 py-4 text-center text-gray-300 font-medium">{row.streamTime}</td>
+                  <td className="px-6 py-4 text-center text-cyan-400 font-bold">{row.diamonds.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-right text-green-400 font-bold">{row.commission}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
