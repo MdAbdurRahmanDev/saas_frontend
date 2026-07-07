@@ -57,11 +57,20 @@ const menuConfig: MenuItem[] = [
   { type: 'divider', title: 'BUSINESS' },
   {
     name: 'Gift Store', icon: icons.gift,
-    children: [{ name: 'All Gifts', href: '/gift-store' }, { name: 'Add Gift', href: '/gift-store/add' }]
+    children: [
+      { name: 'All Gifts', href: '/gift-store' }, 
+      { name: 'Add Gift', href: '/gift-store/add' },
+      { name: 'Add Category', href: '/gift-store/categories' }
+    ]
   },
   {
     name: 'Platform Gifts', icon: icons.gift,
-    children: [{ name: 'Manage', href: '/platform-gifts' }, { name: 'Add Platform Gift', href: '/platform-gifts/add' }, { name: 'Settings', href: '/platform-gifts/settings' }]
+    children: [
+      { name: 'Manage', href: '/platform-gifts' }, 
+      { name: 'Add Platform Gift', href: '/platform-gifts/add' }, 
+      { name: 'Add Category', href: '/platform-gifts/categories' },
+      { name: 'Settings', href: '/platform-gifts/settings' }
+    ]
   },
   { name: 'Daily Rewards', icon: icons.star, href: '/daily-rewards' },
   {

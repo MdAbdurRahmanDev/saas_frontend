@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
@@ -34,7 +36,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/admin/login', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

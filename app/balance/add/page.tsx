@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useState } from 'react';
 
@@ -9,208 +11,274 @@ const SearchIcon = () => (
   </svg>
 );
 const UserIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
 const DiamondIcon = () => (
-  <span className="text-sm">💎</span>
+  <span className="text-cyan-400 font-bold text-lg">💎</span>
 );
 const BeanIcon = () => (
-  <span className="text-sm">🟡</span>
+  <span className="text-yellow-400 font-bold text-lg">🟡</span>
 );
 
-export default function AddBalancePage() {
+export default function BalanceAddPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasSearched, setHasSearched] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('Diamonds');
-  const [note, setNote] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [searchedUser, setSearchedUser] = useState<any>(null); // null when not searched
+  const [activeTab, setActiveTab] = useState<'increase' | 'decrease'>('increase');
+  
+  // Form states
+  const [diamondAmount, setDiamondAmount] = useState('');
+  const [beanAmount, setBeanAmount] = useState('');
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Mock Handle Search (Will connect to API later)
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (!searchQuery) return;
     
-    setSuccess(false);
-    setIsLoading(true);
-    // Mock API call delay
-    setTimeout(() => {
-      setIsLoading(false);
-      setHasSearched(true);
-    }, 600);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/search?q=${searchQuery}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchedUser(data);
+      } else {
+        alert("User not found!");
+        setSearchedUser(null);
+      }
+    } catch (error) {
+      console.error("Error searching user:", error);
+      alert("Error connecting to server");
+    }
   };
 
-  const handleAddBalance = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || isNaN(Number(amount))) return;
-    
-    setSuccess(true);
-    setAmount('');
-    setNote('');
-    
-    // Hide success message after 3 seconds
-    setTimeout(() => setSuccess(false), 3000);
+    if (!searchedUser) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/balance/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_uuid: searchedUser.id,
+          action: activeTab,
+          diamond_amount: parseInt(diamondAmount || '0', 10),
+          bean_amount: parseInt(beanAmount || '0', 10),
+          admin_email: "admin@livestream.com" // Mock admin email for now
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Success! Transaction ID: ${data.trx_id}`);
+        setDiamondAmount('');
+        setBeanAmount('');
+        // Refresh user data silently to show updated balance
+        handleSearch(new Event('submit') as any);
+      } else {
+        const err = await response.text();
+        alert(`Error: ${err}`);
+      }
+    } catch (error) {
+      console.error("Error updating balance:", error);
+      alert("Error updating balance");
+    }
   };
 
   return (
-    <div className="flex flex-col space-y-6 max-w-5xl mx-auto w-full">
+    <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white mb-1">Add Balance</h1>
-        <p className="text-[var(--text-secondary)] text-sm">Search user by UUID to add Diamonds or Beans to their wallet.</p>
+        <h1 className="text-2xl font-bold text-white mb-2">Manage Balance</h1>
+        <p className="text-gray-400 text-sm">Search for a user by UUID or Email to increase or decrease their Diamonds and Beans.</p>
       </div>
 
-      {/* Search Bar Container */}
-      <div className="bg-[#151520] p-6 rounded-xl border border-gray-800 flex flex-col items-center justify-center min-h-[150px] shadow-sm">
-        <form onSubmit={handleSearch} className="w-full max-w-2xl relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
-            <SearchIcon />
+      {/* Search Section */}
+      <div className="bg-[#151520] border border-gray-800 rounded-xl p-6 shadow-xl relative overflow-hidden">
+        {/* Background glow effect */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-indigo-500/5 blur-[80px]"></div>
+        
+        <form onSubmit={handleSearch} className="relative z-10">
+          <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Search User</label>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                <SearchIcon />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Enter UUID or Email address..."
+                className="bg-[#0c0c1a] border border-gray-800 text-white text-sm rounded-lg w-full pl-11 p-3.5 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-inner"
+              />
+            </div>
+            <button 
+              type="submit"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg px-8 py-3.5 transition shadow-lg shadow-indigo-600/20 whitespace-nowrap"
+            >
+              Search
+            </button>
           </div>
-          <input 
-            type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#0c0c1a] border border-gray-700 text-white text-base rounded-full focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-12 pr-24 py-4 placeholder-gray-500 outline-none transition shadow-inner" 
-            placeholder="Enter exact User UUID here..."
-          />
-          <button 
-            type="submit"
-            disabled={!searchQuery.trim() || isLoading}
-            className="absolute inset-y-2 right-2 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
-          >
-            {isLoading ? (
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            ) : 'Find User'}
-          </button>
         </form>
       </div>
 
-      {/* Results & Add Balance Form */}
-      {hasSearched && !isLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* User Details & Action Area */}
+      {searchedUser && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in-up">
           
-          {/* User Full Details Card */}
-          <div className="lg:col-span-5 flex flex-col space-y-6">
-            <div className="bg-gradient-to-br from-[#1a1a2e] to-[#0c0c1a] rounded-xl border border-indigo-900/50 p-6 flex flex-col relative overflow-hidden h-full">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-bl-full opacity-5 -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
+          {/* Left Column: User Card */}
+          <div className="lg:col-span-4">
+            <div className="bg-[#151520] border border-gray-800 rounded-xl p-6 shadow-xl flex flex-col items-center text-center relative overflow-hidden h-full">
+              <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-indigo-900/20 to-transparent"></div>
               
-              <h3 className="font-semibold text-white mb-6 flex items-center"><UserIcon /> <span className="ml-2">User Details</span></h3>
+              <div className="relative z-10 mb-4 mt-2">
+                {searchedUser.profilePic ? (
+                  <img src={searchedUser.profilePic} alt={searchedUser.name} className="w-24 h-24 rounded-full object-cover border-4 border-[#0c0c1a] shadow-xl" />
+                ) : (
+                  <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl border-4 border-[#0c0c1a] shadow-xl ${searchedUser.color}`}>
+                    {searchedUser.initial}
+                  </div>
+                )}
+              </div>
               
-              <div className="flex flex-col items-center mb-6 z-10">
-                <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg shadow-indigo-500/20 mb-4 border-4 border-[#0c0c1a]">
-                  M
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-1">Maya</h2>
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-400 font-mono text-sm">{searchQuery || '0053434'}</span>
-                  <span className="text-[10px] font-bold text-green-400 bg-green-900/30 px-2 py-0.5 rounded border border-green-800/50">ACTIVE</span>
-                </div>
+              <h2 className="text-lg font-bold text-white mb-1 relative z-10">{searchedUser.name}</h2>
+              <p className="text-gray-400 text-sm mb-1 relative z-10">{searchedUser.email}</p>
+              <div className="bg-[#0c0c1a] px-3 py-1 rounded-md border border-gray-800/50 text-xs font-mono text-gray-500 mb-6 relative z-10">
+                UID: {searchedUser.id}
               </div>
 
-              <div className="flex-1"></div>
-              
-              <div className="bg-[#151520] border border-gray-800 rounded-lg p-4 w-full z-10">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col items-center justify-center p-3 border-r border-gray-800">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Current Diamonds</span>
-                    <span className="text-xl font-bold text-cyan-400 flex items-center gap-1">1,200 <DiamondIcon /></span>
+              <div className="w-full grid grid-cols-2 gap-3 relative z-10 mt-auto">
+                <div className="bg-[#0c0c1a] border border-gray-800 rounded-lg p-3 flex flex-col items-center justify-center">
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <DiamondIcon />
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">Diamonds</span>
                   </div>
-                  <div className="flex flex-col items-center justify-center p-3">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Current Beans</span>
-                    <span className="text-xl font-bold text-yellow-400 flex items-center gap-1">5,000 <BeanIcon /></span>
+                  <span className="text-white font-bold text-lg">{searchedUser.diamonds}</span>
+                </div>
+                <div className="bg-[#0c0c1a] border border-gray-800 rounded-lg p-3 flex flex-col items-center justify-center">
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <BeanIcon />
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">Beans</span>
                   </div>
+                  <span className="text-white font-bold text-lg">{searchedUser.beans}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Add Balance Form */}
-          <div className="lg:col-span-7">
-            <div className="bg-[#151520] rounded-xl border border-gray-800 p-6 md:p-8">
-              <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-800 pb-4">Recharge Wallet</h3>
+          {/* Right Column: Manage Balance Forms */}
+          <div className="lg:col-span-8">
+            <div className="bg-[#151520] border border-gray-800 rounded-xl shadow-xl overflow-hidden">
               
-              {success && (
-                <div className="mb-6 bg-green-900/30 border border-green-500/50 text-green-400 px-4 py-3 rounded-lg flex items-center space-x-2 animate-in fade-in zoom-in duration-300">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  <span className="text-sm font-semibold">Balance successfully added to user!</span>
-                </div>
-              )}
+              {/* Tabs */}
+              <div className="flex border-b border-gray-800">
+                <button
+                  onClick={() => setActiveTab('increase')}
+                  className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition relative ${
+                    activeTab === 'increase' 
+                      ? 'text-indigo-400 bg-indigo-500/5' 
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/30'
+                  }`}
+                >
+                  Increase (+)
+                  {activeTab === 'increase' && (
+                    <div className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500 shadow-[0_-2px_10px_rgba(99,102,241,0.5)]"></div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('decrease')}
+                  className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition relative ${
+                    activeTab === 'decrease' 
+                      ? 'text-red-400 bg-red-500/5' 
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/30'
+                  }`}
+                >
+                  Decrease (-)
+                  {activeTab === 'decrease' && (
+                    <div className="absolute bottom-0 inset-x-0 h-0.5 bg-red-500 shadow-[0_-2px_10px_rgba(239,68,68,0.5)]"></div>
+                  )}
+                </button>
+              </div>
 
-              <form onSubmit={handleAddBalance} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Currency Type</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button 
-                      type="button"
-                      onClick={() => setCurrency('Diamonds')}
-                      className={`py-3 px-4 rounded-lg border flex items-center justify-center space-x-2 transition-all ${
-                        currency === 'Diamonds' 
-                          ? 'bg-cyan-900/30 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)]' 
-                          : 'bg-[#0c0c1a] border-gray-800 text-gray-400 hover:border-gray-600'
-                      }`}
-                    >
-                      <DiamondIcon />
-                      <span className="font-semibold">Diamonds</span>
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setCurrency('Beans')}
-                      className={`py-3 px-4 rounded-lg border flex items-center justify-center space-x-2 transition-all ${
-                        currency === 'Beans' 
-                          ? 'bg-yellow-900/30 border-yellow-500 text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.15)]' 
-                          : 'bg-[#0c0c1a] border-gray-800 text-gray-400 hover:border-gray-600'
-                      }`}
-                    >
-                      <BeanIcon />
-                      <span className="font-semibold">Beans</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Amount to Add</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-xl font-bold text-gray-500">+</span>
+              {/* Form Content */}
+              <div className="p-6 md:p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Diamonds Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                        {activeTab === 'increase' ? 'Add' : 'Deduct'} Diamonds
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <DiamondIcon />
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          value={diamondAmount}
+                          onChange={(e) => setDiamondAmount(e.target.value)}
+                          placeholder="e.g. 1000"
+                          className="bg-[#0c0c1a] border border-gray-800 text-white text-lg font-semibold rounded-lg w-full pl-12 p-3 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition shadow-inner"
+                        />
+                      </div>
                     </div>
-                    <input 
-                      type="number" 
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="Enter amount..."
-                      className="bg-[#0c0c1a] border border-gray-700 text-white text-lg font-semibold rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-4 placeholder-gray-600 outline-none transition"
-                      required
-                      min="1"
-                    />
+
+                    {/* Beans Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                        {activeTab === 'increase' ? 'Add' : 'Deduct'} Beans
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <BeanIcon />
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          value={beanAmount}
+                          onChange={(e) => setBeanAmount(e.target.value)}
+                          placeholder="e.g. 500"
+                          className="bg-[#0c0c1a] border border-gray-800 text-white text-lg font-semibold rounded-lg w-full pl-12 p-3 outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition shadow-inner"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Remarks / Notes (Optional)</label>
-                  <textarea 
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    rows={3}
-                    placeholder="E.g., Event reward, manual top-up..."
-                    className="bg-[#0c0c1a] border border-gray-700 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 placeholder-gray-600 outline-none transition custom-scrollbar"
-                  ></textarea>
-                </div>
-
-                <div className="pt-2">
-                  <button 
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98]"
-                  >
-                    Confirm Recharge
-                  </button>
-                </div>
-              </form>
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={!diamondAmount && !beanAmount}
+                      className={`w-full py-4 rounded-lg font-bold text-white shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                        activeTab === 'increase'
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-indigo-600/20'
+                          : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-600/20'
+                      }`}
+                    >
+                      {activeTab === 'increase' ? 'Confirm Addition' : 'Confirm Deduction'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+              
             </div>
           </div>
+          
         </div>
       )}
+
+      {/* Global styles for animations */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.4s ease-out forwards;
+        }
+      `}} />
     </div>
   );
 }

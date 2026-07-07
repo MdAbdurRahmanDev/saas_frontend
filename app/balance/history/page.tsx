@@ -1,192 +1,255 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
 
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 
 // Icons
-const FilterIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-  </svg>
+const DiamondIcon = () => (
+  <span className="text-cyan-400 font-bold">💎</span>
 );
-const SearchIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
+const BeanIcon = () => (
+  <span className="text-yellow-400 font-bold">🟡</span>
 );
 
-const MOCK_GLOBAL_HISTORY = [
-  { id: 'TXN-90234', user: 'Maya (0053434)', date: 'Jul 2, 2026, 10:30 AM', type: 'System Recharge', amount: '+500', currency: 'Diamonds', admin: 'Admin_Joy', status: 'Completed' },
-  { id: 'TXN-90233', user: 'sumona (3355940)', date: 'Jul 2, 2026, 09:15 AM', type: 'Gift Received', amount: '+1,200', currency: 'Beans', admin: 'Auto', status: 'Completed' },
-  { id: 'TXN-90232', user: 'Alex Zihad (1936819)', date: 'Jul 1, 2026, 08:20 PM', type: 'System Deduction', amount: '-150', currency: 'Diamonds', admin: 'Admin_Joy', status: 'Completed' },
-  { id: 'TXN-90231', user: 'Ismail Sara (8482444)', date: 'Jul 1, 2026, 11:05 AM', type: 'Withdrawal', amount: '-10,000', currency: 'Beans', admin: 'Finance_Team', status: 'Pending' },
-  { id: 'TXN-90230', user: 'kajol (8754853)', date: 'Jun 30, 2026, 01:45 PM', type: 'Event Reward', amount: '+5,000', currency: 'Beans', admin: 'Auto', status: 'Completed' },
-  { id: 'TXN-90229', user: 'Singer Chaity (2092056)', date: 'Jun 30, 2026, 10:10 AM', type: 'System Recharge', amount: '+100', currency: 'Diamonds', admin: 'Admin_Root', status: 'Completed' },
-];
+interface HistoryRecord {
+  trx_id: string;
+  admin_email: string;
+  admin_ip: string;
+  target_user_uuid: string;
+  target_user_name: string;
+  transaction_type: string;
+  currency_type: string;
+  amount: number;
+  status: string;
+  created_at: string;
+}
 
 export default function BalanceHistoryPage() {
-  const [activeTab, setActiveTab] = useState('All');
-  const [showFilters, setShowFilters] = useState(false);
+  const [history, setHistory] = useState<HistoryRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter States
   const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [currencyFilter, setCurrencyFilter] = useState('All');
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/balance/history`);
+      if (response.ok) {
+        const data = await response.json();
+        setHistory(data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-white text-center mt-20">Loading History...</div>;
+  }
+
+  // Filter Logic
+  const filteredHistory = history.filter(record => {
+    // Search query matches TRX ID, Admin Email, User Name, or UUID
+    const matchesSearch = 
+      !searchQuery || 
+      record.trx_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.admin_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (record.target_user_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.target_user_uuid.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesType = typeFilter === 'All' || record.transaction_type.toLowerCase() === typeFilter.toLowerCase();
+    const matchesCurrency = currencyFilter === 'All' || record.currency_type.toLowerCase() === currencyFilter.toLowerCase();
+
+    return matchesSearch && matchesType && matchesCurrency;
+  });
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Platform Balance History</h1>
-          <p className="text-[var(--text-secondary)] text-sm">Comprehensive log of all platform-wide balance transactions.</p>
+          <h1 className="text-2xl font-bold text-white mb-1">Balance History</h1>
+          <p className="text-sm text-gray-400">Track all manual balance adjustments made by admins.</p>
         </div>
-        
-        {/* Quick Stats */}
-        <div className="flex items-center gap-3">
-          <div className="bg-cyan-900/20 border border-cyan-900/50 rounded-lg px-4 py-2 flex flex-col">
-            <span className="text-[10px] text-cyan-400 font-bold uppercase">Total Diamonds Flow</span>
-            <span className="text-lg font-bold text-white">24.5k <span className="text-sm">💎</span></span>
-          </div>
-          <div className="bg-yellow-900/20 border border-yellow-900/50 rounded-lg px-4 py-2 flex flex-col">
-            <span className="text-[10px] text-yellow-400 font-bold uppercase">Total Beans Flow</span>
-            <span className="text-lg font-bold text-white">1.2M <span className="text-sm">🟡</span></span>
-          </div>
-        </div>
+        <button 
+          onClick={fetchHistory}
+          className="mt-4 sm:mt-0 bg-[#151520] border border-gray-800 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Refresh</span>
+        </button>
       </div>
 
-      {/* Control Panel (Search & Filters) */}
-      <div className="bg-[#151520] p-4 rounded-xl border border-gray-800 flex flex-col space-y-4">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          
-          <div className="relative w-full lg:w-[350px]">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-              <SearchIcon />
-            </div>
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2.5 placeholder-gray-500 outline-none transition" 
-              placeholder="Search by User Name, UID, or TXN ID..."
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 hide-scrollbar">
-            {['All', 'Diamonds', 'Beans', 'Recharges', 'Withdrawals'].map(tab => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                  activeTab === tab 
-                    ? 'bg-white text-black' 
-                    : 'bg-[#1f1f2e] text-gray-400 hover:bg-[#2a2a3c] hover:text-white border border-gray-800'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center space-x-1 px-3 py-1.5 border rounded-full text-xs font-semibold transition-colors ml-auto lg:ml-2 ${
-                showFilters 
-                  ? 'bg-indigo-900/50 text-indigo-300 border-indigo-700' 
-                  : 'bg-indigo-900/30 text-indigo-400 border-indigo-900/50 hover:bg-indigo-900/50'
-              }`}
+      {/* Filters Section */}
+      <div className="bg-[#151520] p-4 rounded-xl border border-gray-800 flex flex-col md:flex-row gap-4">
+        <div className="flex-1 relative">
+          <svg className="w-5 h-5 absolute left-3 top-2.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input 
+            type="text" 
+            placeholder="Search TRX ID, Admin, or User..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#0c0c1a] border border-gray-800 text-white text-sm rounded-lg pl-10 p-2.5 outline-none focus:border-indigo-500"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div>
+            <select 
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full sm:w-auto bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
             >
-              <FilterIcon />
-              <span>Advanced Filters</span>
-            </button>
+              <option value="All">All Types</option>
+              <option value="increase">Increase (+)</option>
+              <option value="decrease">Decrease (-)</option>
+            </select>
+          </div>
+          <div>
+            <select 
+              value={currencyFilter}
+              onChange={(e) => setCurrencyFilter(e.target.value)}
+              className="w-full sm:w-auto bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
+            >
+              <option value="All">All Currencies</option>
+              <option value="diamonds">Diamonds 💎</option>
+              <option value="beans">Beans 🟡</option>
+            </select>
           </div>
         </div>
-
-        {/* Advanced Filters Dropdown */}
-        {showFilters && (
-          <div className="pt-4 border-t border-gray-800 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Start Date</label>
-              <input type="date" className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-md w-full p-2 outline-none focus:border-indigo-500 [color-scheme:dark]" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">End Date</label>
-              <input type="date" className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-md w-full p-2 outline-none focus:border-indigo-500 [color-scheme:dark]" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Transaction Type</label>
-              <select className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-md w-full p-2 outline-none focus:border-indigo-500">
-                <option>All Types</option>
-                <option>System Recharge</option>
-                <option>System Deduction</option>
-                <option>Gift Received / Sent</option>
-                <option>Withdrawal</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Status</label>
-              <select className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-md w-full p-2 outline-none focus:border-indigo-500">
-                <option>All Statuses</option>
-                <option>Completed</option>
-                <option>Pending</option>
-                <option>Failed</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button className="w-full bg-white text-black hover:bg-gray-200 text-sm font-bold py-2 rounded-md transition-colors">
-                Apply Filters
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Main Data Table */}
-      <div className="bg-[#151520] rounded-xl border border-gray-800 overflow-hidden">
-        <div className="px-4 md:px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-[#0c0c1a]">
-          <h3 className="font-semibold text-white">Records</h3>
-          <button className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition border border-indigo-900/50 bg-indigo-900/20 px-3 py-1.5 rounded-lg">Export CSV</button>
-        </div>
-        
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-sm text-gray-300 min-w-[800px]">
-            <thead className="text-[11px] text-gray-500 uppercase bg-[#0c0c1a]/50 border-b border-gray-800 tracking-wider">
+      {/* Desktop Table */}
+      <div className="hidden lg:block bg-[#151520] rounded-xl border border-gray-800 overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-300">
+            <thead className="text-xs text-gray-500 uppercase bg-[#0c0c1a] border-b border-gray-800">
               <tr>
-                <th className="px-6 py-4 font-semibold whitespace-nowrap">TXN ID & Date</th>
-                <th className="px-6 py-4 font-semibold whitespace-nowrap">User (Name & UID)</th>
-                <th className="px-6 py-4 font-semibold whitespace-nowrap">Type & Admin</th>
-                <th className="px-6 py-4 font-semibold whitespace-nowrap text-right">Amount</th>
-                <th className="px-6 py-4 font-semibold whitespace-nowrap text-center">Status</th>
+                <th className="px-6 py-4 font-semibold">Trx ID</th>
+                <th className="px-6 py-4 font-semibold">Date & Time</th>
+                <th className="px-6 py-4 font-semibold">Admin (IP)</th>
+                <th className="px-6 py-4 font-semibold">Target User</th>
+                <th className="px-6 py-4 font-semibold">Type</th>
+                <th className="px-6 py-4 font-semibold">Amount</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
               </tr>
             </thead>
             <tbody>
-              {MOCK_GLOBAL_HISTORY.map((txn, index) => (
-                <tr key={index} className="border-b border-gray-800/50 hover:bg-[#1a1a2e] transition-colors">
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div className="font-mono text-xs text-indigo-400 font-semibold">{txn.id}</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">{txn.date}</div>
+              {filteredHistory.map((record) => (
+                <tr key={record.trx_id} className="border-b border-gray-800/50 hover:bg-[#1a1a2e] transition-colors">
+                  <td className="px-6 py-4 font-mono text-xs text-indigo-400 font-bold">
+                    {record.trx_id}
                   </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-gray-200">{txn.user}</div>
+                  <td className="px-6 py-4 text-xs text-gray-400">
+                    {new Date(record.created_at).toLocaleString()}
                   </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-300">{txn.type}</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">By: <span className="text-gray-400">{txn.admin}</span></div>
+                  <td className="px-6 py-4">
+                    <div className="text-white font-semibold text-xs">{record.admin_email}</div>
+                    <div className="text-[10px] text-gray-500 font-mono mt-0.5">{record.admin_ip}</div>
                   </td>
-                  <td className="px-6 py-3 whitespace-nowrap text-right">
-                    <div className={`font-bold text-base flex items-center justify-end gap-1 ${txn.amount.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>
-                      {txn.amount} 
-                      <span className="text-sm">{txn.currency === 'Diamonds' ? '💎' : '🟡'}</span>
+                  <td className="px-6 py-4">
+                    <div className="text-white font-semibold">{record.target_user_name || "Unknown"}</div>
+                    <div className="text-xs text-gray-500 font-mono mt-0.5">UID: {record.target_user_uuid}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-sm border uppercase ${
+                      record.transaction_type === 'increase' 
+                        ? 'bg-indigo-900/30 text-indigo-400 border-indigo-800/50' 
+                        : 'bg-red-900/30 text-red-400 border-red-800/50'
+                    }`}>
+                      {record.transaction_type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-1.5">
+                      <span className={`font-bold ${record.transaction_type === 'increase' ? 'text-green-400' : 'text-red-400'}`}>
+                        {record.transaction_type === 'increase' ? '+' : '-'}{record.amount}
+                      </span>
+                      {record.currency_type === 'diamonds' ? <DiamondIcon /> : <BeanIcon />}
                     </div>
                   </td>
-                  <td className="px-6 py-3 whitespace-nowrap text-center">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                      txn.status === 'Completed' 
-                        ? 'bg-green-900/20 text-green-400 border-green-800/40' 
-                        : 'bg-yellow-900/20 text-yellow-400 border-yellow-800/40'
-                    }`}>
-                      {txn.status}
+                  <td className="px-6 py-4">
+                    <span className="bg-green-900/30 text-green-400 text-[10px] font-bold px-2 py-1 rounded border border-green-800/50 uppercase">
+                      {record.status}
                     </span>
                   </td>
                 </tr>
               ))}
+              
+              {filteredHistory.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    No transactions found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {filteredHistory.map((record) => (
+          <div key={record.trx_id} className="bg-[#151520] p-4 rounded-xl border border-gray-800 flex flex-col space-y-3 relative overflow-hidden shadow-lg">
+            <div className="flex justify-between items-start border-b border-gray-800 pb-3">
+              <div>
+                <div className="font-mono text-xs text-indigo-400 font-bold mb-1">{record.trx_id}</div>
+                <div className="text-[10px] text-gray-400">{new Date(record.created_at).toLocaleString()}</div>
+              </div>
+              <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase ${
+                record.transaction_type === 'increase' 
+                  ? 'bg-indigo-900/30 text-indigo-400 border-indigo-800/50' 
+                  : 'bg-red-900/30 text-red-400 border-red-800/50'
+              }`}>
+                {record.transaction_type}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm pt-1">
+              <div>
+                <span className="block text-[10px] text-gray-500 uppercase font-semibold mb-0.5">Admin</span>
+                <div className="text-gray-300 truncate text-xs">{record.admin_email}</div>
+              </div>
+              <div>
+                <span className="block text-[10px] text-gray-500 uppercase font-semibold mb-0.5">User</span>
+                <div className="text-gray-300 truncate text-xs">{record.target_user_name || record.target_user_uuid}</div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-gray-800/50">
+              <span className="bg-green-900/30 text-green-400 text-[9px] font-bold px-2 py-0.5 rounded border border-green-800/50 uppercase">
+                {record.status}
+              </span>
+              <div className="flex items-center space-x-1.5 text-base">
+                <span className={`font-bold ${record.transaction_type === 'increase' ? 'text-green-400' : 'text-red-400'}`}>
+                  {record.transaction_type === 'increase' ? '+' : '-'}{record.amount}
+                </span>
+                {record.currency_type === 'diamonds' ? <DiamondIcon /> : <BeanIcon />}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {filteredHistory.length === 0 && (
+          <div className="bg-[#151520] p-6 rounded-xl border border-gray-800 text-center text-gray-500">
+            No transactions found.
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

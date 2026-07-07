@@ -3,8 +3,13 @@ import { API_BASE_URL } from '@/utils/api';
 
 
 import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 
-export default function AddPlatformGiftPage() {
+export default function EditPlatformGiftPage() {
+  const params = useParams();
+  const router = useRouter();
+  const giftId = params.id as string;
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -36,8 +41,34 @@ export default function AddPlatformGiftPage() {
         console.error('Error fetching categories:', error);
       }
     };
-    fetchCategories();
-  }, []);
+
+    const fetchGiftData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/platform-gifts/${giftId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setName(data.name || '');
+          setFormat(data.format || '');
+          setCost(String(data.cost || ''));
+          setAdminCommission(String(data.admin_commission || ''));
+          setCategory(data.category || '');
+          setNotes(data.internal_notes || '');
+          setAutoDispatch(data.auto_dispatch ?? true);
+          setInAppNotification(data.in_app_notification ?? true);
+          if (data.image_url) {
+            setImagePreview(`${API_BASE_URL}${data.image_url}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching gift:', error);
+      }
+    };
+
+    if (giftId) {
+      fetchCategories();
+      fetchGiftData();
+    }
+  }, [giftId]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -52,8 +83,8 @@ export default function AddPlatformGiftPage() {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!name || !format || !cost || !file) {
-      setErrorMsg('Please fill in all required fields (Name, Format, Cost, Image).');
+    if (!name || !format || !cost) {
+      setErrorMsg('Please fill in all required fields (Name, Format, Cost).');
       return;
     }
 
@@ -69,15 +100,20 @@ export default function AddPlatformGiftPage() {
       formData.append('notes', notes);
       formData.append('autoDispatch', String(autoDispatch));
       formData.append('inAppNotification', String(inAppNotification));
-      formData.append('image', file);
+      if (file) {
+        formData.append('image', file);
+      }
 
-      const response = await fetch(`${API_BASE_URL}/api/platform-gifts`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/api/platform-gifts/${giftId}`, {
+        method: 'PUT',
         body: formData,
       });
 
       if (response.ok) {
-        setSuccessMsg('Platform Gift successfully added!');
+        setSuccessMsg('Platform Gift successfully updated!');
+        setTimeout(() => {
+          router.push('/platform-gifts');
+        }, 1000);
         // Reset form
         setName('');
         setFormat('');
@@ -103,14 +139,14 @@ export default function AddPlatformGiftPage() {
       <div className="flex flex-col xl:flex-row xl:justify-between items-start xl:items-end gap-4 xl:gap-0 mb-6">
         <div>
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500 mb-2">
-            Add Platform Gift
+            Edit Platform Gift
           </h1>
           <p className="text-[var(--text-secondary)] text-sm">
-            Create a new system-level gift for achievements or events.
+            Modify the selected system-level gift for achievements or events.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-[#1f2937] text-gray-300 rounded-md text-sm font-semibold border border-gray-700 hover:bg-gray-700 transition">
+          <button onClick={() => router.push('/platform-gifts')} className="px-4 py-2 bg-[#1f2937] text-gray-300 rounded-md text-sm font-semibold border border-gray-700 hover:bg-gray-700 transition">
             Cancel
           </button>
           <button 
@@ -118,7 +154,7 @@ export default function AddPlatformGiftPage() {
             disabled={loading}
             className="px-6 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-md text-sm font-semibold shadow-lg hover:shadow-teal-500/25 hover:from-teal-400 hover:to-cyan-500 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50"
           >
-            {loading ? 'Saving...' : 'Save Platform Gift'}
+            {loading ? 'Saving...' : 'Update Platform Gift'}
           </button>
         </div>
       </div>
