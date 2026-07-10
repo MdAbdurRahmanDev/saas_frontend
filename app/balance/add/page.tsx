@@ -2,7 +2,7 @@
 import { API_BASE_URL } from '@/utils/api';
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Icons
 const SearchIcon = () => (
@@ -30,6 +30,48 @@ export default function BalanceAddPage() {
   // Form states
   const [diamondAmount, setDiamondAmount] = useState('');
   const [beanAmount, setBeanAmount] = useState('');
+  const [balanceSettings, setBalanceSettings] = useState({ beansActive: true, diamondsActive: true });
+
+  useEffect(() => {
+    const fetchBalanceSettings = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/settings/balance`);
+        let fetchedFromServer = false;
+        if (response.ok) {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            setBalanceSettings({
+              beansActive: data.beans_active ?? true,
+              diamondsActive: data.diamonds_active ?? true,
+            });
+            fetchedFromServer = true;
+          }
+        }
+        if (!fetchedFromServer) {
+          const localSettings = localStorage.getItem('balanceSettings');
+          if (localSettings) {
+            const parsed = JSON.parse(localSettings);
+            setBalanceSettings({
+              beansActive: parsed.beansActive,
+              diamondsActive: parsed.diamondsActive,
+            });
+          }
+        }
+      } catch (error) {
+        // console.error("Failed to fetch balance settings");
+        const localSettings = localStorage.getItem('balanceSettings');
+        if (localSettings) {
+          const parsed = JSON.parse(localSettings);
+          setBalanceSettings({
+            beansActive: parsed.beansActive,
+            diamondsActive: parsed.diamondsActive,
+          });
+        }
+      }
+    };
+    fetchBalanceSettings();
+  }, []);
 
   // Mock Handle Search (Will connect to API later)
   const handleSearch = async (e: React.FormEvent) => {
@@ -148,21 +190,26 @@ export default function BalanceAddPage() {
                 UID: {searchedUser.id}
               </div>
 
-              <div className="w-full grid grid-cols-2 gap-3 relative z-10 mt-auto">
-                <div className="bg-[#0c0c1a] border border-gray-800 rounded-lg p-3 flex flex-col items-center justify-center">
-                  <div className="flex items-center space-x-1.5 mb-1">
-                    <DiamondIcon />
-                    <span className="text-[10px] text-gray-400 font-bold uppercase">Diamonds</span>
+              {/* একটি active থাকলে full width card, দুটো হলে 2 cols */}
+              <div className={`w-full grid gap-3 relative z-10 mt-auto ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {balanceSettings.diamondsActive && (
+                  <div className={`bg-[#0c0c1a] border border-gray-800 rounded-lg flex flex-col items-center justify-center ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'p-3' : 'p-6'}`}>
+                    <div className="flex items-center space-x-1.5 mb-1">
+                      <DiamondIcon />
+                      <span className={`text-gray-400 font-bold uppercase ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'text-[10px]' : 'text-sm'}`}>Diamonds</span>
+                    </div>
+                    <span className={`text-white font-bold ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'text-lg' : 'text-3xl'}`}>{searchedUser.diamonds}</span>
                   </div>
-                  <span className="text-white font-bold text-lg">{searchedUser.diamonds}</span>
-                </div>
-                <div className="bg-[#0c0c1a] border border-gray-800 rounded-lg p-3 flex flex-col items-center justify-center">
-                  <div className="flex items-center space-x-1.5 mb-1">
-                    <BeanIcon />
-                    <span className="text-[10px] text-gray-400 font-bold uppercase">Beans</span>
+                )}
+                {balanceSettings.beansActive && (
+                  <div className={`bg-[#0c0c1a] border border-gray-800 rounded-lg flex flex-col items-center justify-center ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'p-3' : 'p-6'}`}>
+                    <div className="flex items-center space-x-1.5 mb-1">
+                      <BeanIcon />
+                      <span className={`text-gray-400 font-bold uppercase ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'text-[10px]' : 'text-sm'}`}>Beans</span>
+                    </div>
+                    <span className={`text-white font-bold ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'text-lg' : 'text-3xl'}`}>{searchedUser.beans}</span>
                   </div>
-                  <span className="text-white font-bold text-lg">{searchedUser.beans}</span>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -205,46 +252,51 @@ export default function BalanceAddPage() {
               <div className="p-6 md:p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* একটি active থাকলে full width, দুটো active থাকলে ২ কলাম grid */}
+                  <div className={`grid grid-cols-1 ${balanceSettings.diamondsActive && balanceSettings.beansActive ? 'md:grid-cols-2' : ''} gap-6`}>
                     {/* Diamonds Input */}
-                    <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                        {activeTab === 'increase' ? 'Add' : 'Deduct'} Diamonds
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <DiamondIcon />
+                    {balanceSettings.diamondsActive && (
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                          {activeTab === 'increase' ? 'Add' : 'Deduct'} Diamonds
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <DiamondIcon />
+                          </div>
+                          <input
+                            type="number"
+                            min="0"
+                            value={diamondAmount}
+                            onChange={(e) => setDiamondAmount(e.target.value)}
+                            placeholder="e.g. 1000"
+                            className="bg-[#0c0c1a] border border-gray-800 text-white text-lg font-semibold rounded-lg w-full pl-12 p-3 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition shadow-inner"
+                          />
                         </div>
-                        <input
-                          type="number"
-                          min="0"
-                          value={diamondAmount}
-                          onChange={(e) => setDiamondAmount(e.target.value)}
-                          placeholder="e.g. 1000"
-                          className="bg-[#0c0c1a] border border-gray-800 text-white text-lg font-semibold rounded-lg w-full pl-12 p-3 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition shadow-inner"
-                        />
                       </div>
-                    </div>
+                    )}
 
                     {/* Beans Input */}
-                    <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                        {activeTab === 'increase' ? 'Add' : 'Deduct'} Beans
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <BeanIcon />
+                    {balanceSettings.beansActive && (
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                          {activeTab === 'increase' ? 'Add' : 'Deduct'} Beans
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <BeanIcon />
+                          </div>
+                          <input
+                            type="number"
+                            min="0"
+                            value={beanAmount}
+                            onChange={(e) => setBeanAmount(e.target.value)}
+                            placeholder="e.g. 500"
+                            className="bg-[#0c0c1a] border border-gray-800 text-white text-lg font-semibold rounded-lg w-full pl-12 p-3 outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition shadow-inner"
+                          />
                         </div>
-                        <input
-                          type="number"
-                          min="0"
-                          value={beanAmount}
-                          onChange={(e) => setBeanAmount(e.target.value)}
-                          placeholder="e.g. 500"
-                          className="bg-[#0c0c1a] border border-gray-800 text-white text-lg font-semibold rounded-lg w-full pl-12 p-3 outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition shadow-inner"
-                        />
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="pt-4">

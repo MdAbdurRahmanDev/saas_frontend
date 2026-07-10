@@ -1,4 +1,23 @@
-export default function Home() {
+import { fetchUsers } from '@/services/api';
+
+export default async function Home() {
+  let totalUsers = 0;
+  let activeUsers = 0;
+  let bannedUsers = 0;
+  let deactiveUsers = 0;
+  try {
+    // API থেকে ইউজারদের ডেটা ফেচ করে স্ট্যাটাস অনুযায়ী টোটাল এবং অন্যান্য কাউন্ট বের করা হচ্ছে
+    const users = await fetchUsers();
+    if (users && Array.isArray(users)) {
+      totalUsers = users.length;
+      activeUsers = users.filter((u: any) => u.status?.toLowerCase() === 'active').length;
+      bannedUsers = users.filter((u: any) => u.status?.toLowerCase() === 'banned').length;
+      deactiveUsers = users.filter((u: any) => u.status?.toLowerCase() === 'deactive' || u.status?.toLowerCase() === 'inactive').length;
+    }
+  } catch (error) {
+    console.error("Failed to fetch users for dashboard:", error);
+  }
+
   return (
     <div className="flex flex-col space-y-6">
       {/* Top Header Section */}
@@ -40,7 +59,43 @@ export default function Home() {
           </div>
           <div className="relative z-10">
             <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Total Users</div>
-            <div className="text-2xl font-bold text-white">956</div>
+            <div className="text-2xl font-bold text-white">{totalUsers}</div>
+          </div>
+        </div>
+
+        {/* Active Users Card */}
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--card-bg-green)] rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
+          <div className="w-8 h-8 rounded-lg bg-[var(--card-bg-green)] text-green-400 flex items-center justify-center mb-4 relative z-10">
+            🟢
+          </div>
+          <div className="relative z-10">
+            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Active Users</div>
+            <div className="text-2xl font-bold text-green-400">{activeUsers}</div>
+          </div>
+        </div>
+
+        {/* Banned Users Card */}
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-900 rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
+          <div className="w-8 h-8 rounded-lg bg-red-900/40 text-red-400 flex items-center justify-center mb-4 relative z-10">
+            ⛔
+          </div>
+          <div className="relative z-10">
+            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Banned Users</div>
+            <div className="text-2xl font-bold text-red-400">{bannedUsers}</div>
+          </div>
+        </div>
+
+        {/* Deactive Users Card */}
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--card-bg-yellow)] rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
+          <div className="w-8 h-8 rounded-lg bg-[var(--card-bg-yellow)] text-yellow-400 flex items-center justify-center mb-4 relative z-10">
+            ⏸️
+          </div>
+          <div className="relative z-10">
+            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Deactive Users</div>
+            <div className="text-2xl font-bold text-yellow-400">{deactiveUsers}</div>
           </div>
         </div>
         

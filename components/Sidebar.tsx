@@ -117,7 +117,8 @@ const menuConfig: MenuItem[] = [
       { name: 'Livekit Config', href: '/setting/livekit' },
       { name: 'Banner Setting', href: '/setting/banner' },
       { name: 'Firebase', href: '/setting/firebase' },
-      { name: 'Devices Info', href: '/setting/devices' }
+      { name: 'Devices Info', href: '/setting/devices' },
+      { name: 'Balance', href: '/setting/balance' }
     ]
   },
   {

@@ -57,6 +57,7 @@ export default function UsersPage() {
   const [levelFilter, setLevelFilter] = useState('All Levels');
   
   const [isLoading, setIsLoading] = useState(true);
+  const [balanceSettings, setBalanceSettings] = useState({ beansActive: true, diamondsActive: true });
   
   // Delete Modal States
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
@@ -89,7 +90,46 @@ export default function UsersPage() {
       }
     };
 
+    const fetchBalanceSettings = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/settings/balance`);
+        let fetchedFromServer = false;
+        if (response.ok) {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            setBalanceSettings({
+              beansActive: data.beans_active ?? true,
+              diamondsActive: data.diamonds_active ?? true,
+            });
+            fetchedFromServer = true;
+          }
+        }
+        if (!fetchedFromServer) {
+          const localSettings = localStorage.getItem('balanceSettings');
+          if (localSettings) {
+            const parsed = JSON.parse(localSettings);
+            setBalanceSettings({
+              beansActive: parsed.beansActive,
+              diamondsActive: parsed.diamondsActive,
+            });
+          }
+        }
+      } catch (error) {
+        // console.error("Failed to fetch balance settings");
+        const localSettings = localStorage.getItem('balanceSettings');
+        if (localSettings) {
+          const parsed = JSON.parse(localSettings);
+          setBalanceSettings({
+            beansActive: parsed.beansActive,
+            diamondsActive: parsed.diamondsActive,
+          });
+        }
+      }
+    };
+
     fetchUsers();
+    fetchBalanceSettings();
   }, []);
 
   // ডাইনামিক ফিল্টারিং লজিক (নাম, ইমেইল, UUID, স্ট্যাটাস, স্ক্রিনশট এবং লেভেল অনুযায়ী)
@@ -357,8 +397,8 @@ export default function UsersPage() {
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold">Screenshot</th>
                 <th className="px-6 py-4 font-semibold">Level</th>
-                <th className="px-6 py-4 font-semibold">Diamonds</th>
-                <th className="px-6 py-4 font-semibold">Beans</th>
+                {balanceSettings.diamondsActive && <th className="px-6 py-4 font-semibold">Diamonds</th>}
+                {balanceSettings.beansActive && <th className="px-6 py-4 font-semibold">Beans</th>}
                 <th className="px-6 py-4 font-semibold">Joined</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
@@ -401,8 +441,12 @@ export default function UsersPage() {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-gray-400 text-xs font-semibold">{user.level}</td>
-                  <td className="px-6 py-4 text-cyan-400 font-semibold text-xs">{user.diamonds} <span className="text-gray-600 text-[10px]">💎</span></td>
-                  <td className="px-6 py-4 text-yellow-400 font-semibold text-xs">{user.beans} <span className="text-gray-600 text-[10px]">🟡</span></td>
+                  {balanceSettings.diamondsActive && (
+                    <td className="px-6 py-4 text-cyan-400 font-semibold text-xs">{user.diamonds} <span className="text-gray-600 text-[10px]">💎</span></td>
+                  )}
+                  {balanceSettings.beansActive && (
+                    <td className="px-6 py-4 text-yellow-400 font-semibold text-xs">{user.beans} <span className="text-gray-600 text-[10px]">🟡</span></td>
+                  )}
                   <td className="px-6 py-4 text-gray-400 text-xs">{user.joined}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-3">
@@ -462,14 +506,18 @@ export default function UsersPage() {
                 <span className="text-[10px] text-gray-500 font-semibold uppercase">Joined</span>
                 <span className="text-xs text-gray-300">{user.joined}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 font-semibold uppercase">Diamonds</span>
-                <span className="text-xs text-cyan-400 font-semibold">{user.diamonds} 💎</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 font-semibold uppercase">Beans</span>
-                <span className="text-xs text-yellow-400 font-semibold">{user.beans} 🟡</span>
-              </div>
+              {balanceSettings.diamondsActive && (
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-500 font-semibold uppercase">Diamonds</span>
+                  <span className="text-xs text-cyan-400 font-semibold">{user.diamonds} 💎</span>
+                </div>
+              )}
+              {balanceSettings.beansActive && (
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-500 font-semibold uppercase">Beans</span>
+                  <span className="text-xs text-yellow-400 font-semibold">{user.beans} 🟡</span>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-between items-center pt-1">
