@@ -128,6 +128,15 @@ const menuConfig: MenuItem[] = [
       { name: 'Manage Skin', href: '/room-skin/manage' }
     ]
   },
+  { type: 'divider', title: 'CONTENT' },
+  {
+    name: 'Pages', icon: icons.report,
+    children: [
+      { name: 'Privacy Policy', href: '/pages/privacy-policy' },
+      { name: 'Terms of Service', href: '/pages/terms-of-service' },
+      { name: 'About Us', href: '/pages/about-us' }
+    ]
+  },
   { name: 'Push Notifications', icon: icons.bell, href: '#' },
 ];
 

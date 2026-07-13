@@ -48,10 +48,21 @@ export default function UserHistoryPage({ params }: { params: Promise<{ id: stri
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [currencyFilter, setCurrencyFilter] = useState('All');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchData();
   }, [resolvedParams.id]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter, currencyFilter, startDate, endDate]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -99,8 +110,26 @@ export default function UserHistoryPage({ params }: { params: Promise<{ id: stri
     const matchesType = typeFilter === 'All' || record.transaction_type.toLowerCase() === typeFilter.toLowerCase();
     const matchesCurrency = currencyFilter === 'All' || record.currency_type.toLowerCase() === currencyFilter.toLowerCase();
 
-    return matchesSearch && matchesType && matchesCurrency;
+    // Date Filters
+    let matchesStartDate = true;
+    let matchesEndDate = true;
+    
+    if (startDate) {
+      matchesStartDate = new Date(record.created_at) >= new Date(startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      matchesEndDate = new Date(record.created_at) <= end;
+    }
+
+    return matchesSearch && matchesType && matchesCurrency && matchesStartDate && matchesEndDate;
   });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedHistory = filteredHistory.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-10">
@@ -164,25 +193,44 @@ export default function UserHistoryPage({ params }: { params: Promise<{ id: stri
             className="w-full bg-[#0c0c1a] border border-gray-800 text-white text-sm rounded-lg pl-10 p-2.5 outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
-        <div className="flex gap-4 w-full md:w-auto">
-          <select 
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="flex-1 md:w-[150px] bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
-          >
-            <option value="All">All Types</option>
-            <option value="increase">Increase (+)</option>
-            <option value="decrease">Decrease (-)</option>
-          </select>
-          <select 
-            value={currencyFilter}
-            onChange={(e) => setCurrencyFilter(e.target.value)}
-            className="flex-1 md:w-[160px] bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
-          >
-            <option value="All">All Currencies</option>
-            <option value="diamonds">Diamonds 💎</option>
-            <option value="beans">Beans 🟡</option>
-          </select>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex gap-2">
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
+            />
+            <span className="text-gray-500 self-center">to</span>
+            <input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <select 
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full sm:w-auto bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
+            >
+              <option value="All">All Types</option>
+              <option value="increase">Increase (+)</option>
+              <option value="decrease">Decrease (-)</option>
+            </select>
+          </div>
+          <div>
+            <select 
+              value={currencyFilter}
+              onChange={(e) => setCurrencyFilter(e.target.value)}
+              className="w-full sm:w-auto bg-[#0c0c1a] border border-gray-800 text-gray-300 text-sm rounded-lg p-2.5 outline-none focus:border-indigo-500"
+            >
+              <option value="All">All Currencies</option>
+              <option value="diamonds">Diamonds 💎</option>
+              <option value="beans">Beans 🟡</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -201,8 +249,8 @@ export default function UserHistoryPage({ params }: { params: Promise<{ id: stri
               </tr>
             </thead>
             <tbody>
-              {filteredHistory.map((record) => (
-                <tr key={record.trx_id} className="border-b border-gray-800/50 hover:bg-[#1a1a2e] transition-colors">
+              {paginatedHistory.map((record, index) => (
+                <tr key={`${record.trx_id}-${index}`} className="border-b border-gray-800/50 hover:bg-[#1a1a2e] transition-colors">
                   <td className="px-6 py-4 font-mono text-xs text-indigo-400 font-bold">
                     {record.trx_id}
                   </td>
@@ -252,8 +300,8 @@ export default function UserHistoryPage({ params }: { params: Promise<{ id: stri
 
       {/* History Cards (Mobile) */}
       <div className="lg:hidden space-y-4 mt-4">
-        {filteredHistory.map((record) => (
-          <div key={record.trx_id} className="bg-[#151520] p-4 rounded-xl border border-gray-800 flex flex-col space-y-3 relative overflow-hidden shadow-lg">
+        {paginatedHistory.map((record, index) => (
+          <div key={`${record.trx_id}-${index}`} className="bg-[#151520] p-4 rounded-xl border border-gray-800 flex flex-col space-y-3 relative overflow-hidden shadow-lg">
             <div className="flex justify-between items-start border-b border-gray-800 pb-3">
               <div>
                 <div className="font-mono text-xs text-indigo-400 font-bold mb-1">{record.trx_id}</div>
@@ -288,11 +336,48 @@ export default function UserHistoryPage({ params }: { params: Promise<{ id: stri
         ))}
 
         {filteredHistory.length === 0 && (
-          <div className="bg-[#151520] p-8 rounded-xl border border-gray-800 text-center text-gray-500">
+          <div className="bg-[#151520] p-6 rounded-xl border border-gray-800 text-center text-gray-500 mt-4">
             No transactions found.
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-[#151520] border border-gray-800 rounded-lg text-sm text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          <div className="flex space-x-1">
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-8 h-8 rounded-lg text-sm font-semibold flex items-center justify-center ${
+                  currentPage === i + 1
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-[#151520] border border-gray-800 text-gray-400 hover:bg-[#1a1a2e]'
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-[#151520] border border-gray-800 rounded-lg text-sm text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
     </div>
   );
