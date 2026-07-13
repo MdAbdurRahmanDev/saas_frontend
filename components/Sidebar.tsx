@@ -118,7 +118,8 @@ const menuConfig: MenuItem[] = [
       { name: 'Banner Setting', href: '/setting/banner' },
       { name: 'Firebase', href: '/setting/firebase' },
       { name: 'Devices Info', href: '/setting/devices' },
-      { name: 'Balance', href: '/setting/balance' }
+      { name: 'Balance', href: '/setting/balance' },
+      { name: 'Help Center', href: '/setting/help-center' }
     ]
   },
   {
@@ -134,9 +135,11 @@ const menuConfig: MenuItem[] = [
     children: [
       { name: 'Privacy Policy', href: '/pages/privacy-policy' },
       { name: 'Terms of Service', href: '/pages/terms-of-service' },
-      { name: 'About Us', href: '/pages/about-us' }
+      { name: 'About Us', href: '/pages/about-us' },
+      { name: 'FAQ', href: '/pages/faq' }
     ]
   },
+  { name: 'Live Chat', icon: icons.settings, href: '/support-chat' },
   { name: 'Push Notifications', icon: icons.bell, href: '#' },
 ];
 
