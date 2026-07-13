@@ -9,3 +9,12 @@ export const fetchUsers = async () => {
   }
   return response.json();
 };
+
+// API থেকে ব্যালেন্স সেটিংস ফেচ করার ফাংশন
+export const fetchBalanceSettings = async () => {
+  const response = await fetch(`${BASE_URL}/settings/balance`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch balance settings');
+  }
+  return response.json();
+};

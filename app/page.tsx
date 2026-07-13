@@ -1,10 +1,13 @@
-import { fetchUsers } from '@/services/api';
+import { fetchUsers, fetchBalanceSettings } from '@/services/api';
 
 export default async function Home() {
   let totalUsers = 0;
   let activeUsers = 0;
   let bannedUsers = 0;
   let deactiveUsers = 0;
+  let beansActive = true;
+  let diamondsActive = true;
+
   try {
     // API থেকে ইউজারদের ডেটা ফেচ করে স্ট্যাটাস অনুযায়ী টোটাল এবং অন্যান্য কাউন্ট বের করা হচ্ছে
     const users = await fetchUsers();
@@ -18,6 +21,17 @@ export default async function Home() {
     console.error("Failed to fetch users for dashboard:", error);
   }
 
+  try {
+    // ডাটাবেজ থেকে ব্যালেন্স সেটিংস ফেচ করা হচ্ছে 
+    const balanceSettings = await fetchBalanceSettings();
+    if (balanceSettings) {
+      beansActive = balanceSettings.beans_active;
+      diamondsActive = balanceSettings.diamonds_active;
+    }
+  } catch (error) {
+    console.error("Failed to fetch balance settings:", error);
+  }
+
   return (
     <div className="flex flex-col space-y-6">
       {/* Top Header Section */}
@@ -27,10 +41,13 @@ export default async function Home() {
           <p className="text-[var(--text-secondary)] text-sm">Real-time platform analytics and reporting.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-          <button className="flex items-center space-x-2 px-3 py-1.5 bg-yellow-900/40 text-yellow-500 rounded-md text-xs font-semibold border border-yellow-900/50 hover:bg-yellow-900/60 transition">
-            <span className="w-2 h-2 rounded-sm bg-yellow-500 block"></span>
-            <span>Empty Beans</span>
-          </button>
+          {/* বিনস অ্যাকটিভ থাকলে এই বাটনটি দেখাবে */}
+          {beansActive && (
+            <button className="flex items-center space-x-2 px-3 py-1.5 bg-yellow-900/40 text-yellow-500 rounded-md text-xs font-semibold border border-yellow-900/50 hover:bg-yellow-900/60 transition">
+              <span className="w-2 h-2 rounded-sm bg-yellow-500 block"></span>
+              <span>Empty Beans</span>
+            </button>
+          )}
           <button className="flex items-center space-x-2 px-3 py-1.5 bg-green-900/40 text-green-500 rounded-md text-xs font-semibold border border-green-900/50 hover:bg-green-900/60 transition">
             <span className="text-lg leading-none">✨</span>
             <span>Clean Empty Rooms</span>
@@ -39,10 +56,13 @@ export default async function Home() {
             <span className="text-lg leading-none">⚡</span>
             <span>Clear Stuck Streams</span>
           </button>
-          <button className="flex items-center space-x-2 px-3 py-1.5 bg-cyan-900/40 text-cyan-500 rounded-md text-xs font-semibold border border-cyan-900/50 hover:bg-cyan-900/60 transition">
-            <span className="text-lg leading-none">💎</span>
-            <span>Empty Diamonds</span>
-          </button>
+          {/* ডায়মন্ডস অ্যাকটিভ থাকলে এই বাটনটি দেখাবে */}
+          {diamondsActive && (
+            <button className="flex items-center space-x-2 px-3 py-1.5 bg-cyan-900/40 text-cyan-500 rounded-md text-xs font-semibold border border-cyan-900/50 hover:bg-cyan-900/60 transition">
+              <span className="text-lg leading-none">💎</span>
+              <span>Empty Diamonds</span>
+            </button>
+          )}
           <button className="px-4 py-1.5 bg-[#1f2937] text-gray-300 rounded-md text-xs font-semibold border border-gray-700 hover:bg-gray-700 transition uppercase tracking-wider">
             Live Updates
           </button>
