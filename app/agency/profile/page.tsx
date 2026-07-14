@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_BASE_URL } from '@/utils/api';
 
-export default function AgencyProfilePage() {
+function AgencyProfileContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
 
@@ -358,5 +358,13 @@ export default function AgencyProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AgencyProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0F0F1A] text-white flex items-center justify-center">Loading...</div>}>
+      <AgencyProfileContent />
+    </Suspense>
   );
 }

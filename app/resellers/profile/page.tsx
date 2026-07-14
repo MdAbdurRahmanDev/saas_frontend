@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_BASE_URL } from '@/utils/api';
 
-export default function ResellerProfilePage() {
+function ResellerProfileContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
 
@@ -454,5 +454,13 @@ export default function ResellerProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ResellerProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0F0F1A] text-white flex items-center justify-center">Loading...</div>}>
+      <ResellerProfileContent />
+    </Suspense>
   );
 }
