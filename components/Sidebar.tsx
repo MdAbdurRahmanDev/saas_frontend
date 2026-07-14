@@ -61,7 +61,8 @@ const menuConfig: MenuItem[] = [
     children: [
       { name: 'All Gifts', href: '/gift-store' }, 
       { name: 'Add Gift', href: '/gift-store/add' },
-      { name: 'Add Category', href: '/gift-store/categories' }
+      { name: 'Add Category', href: '/gift-store/categories' },
+      { name: 'Gift Orders', href: '/gift-store/orders' }
     ]
   },
   {

@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 export default function GiftCategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [iconFile, setIconFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -37,14 +38,21 @@ export default function GiftCategoriesPage() {
     
     setSaving(true);
     try {
+      const formData = new FormData();
+      formData.append('name', newCategoryName.trim());
+      formData.append('type', 'store');
+      if (iconFile) {
+        formData.append('icon', iconFile);
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/gift-categories`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategoryName.trim(), type: 'store' })
+        body: formData,
       });
 
       if (response.ok) {
         setNewCategoryName('');
+        setIconFile(null);
         fetchCategories(); // লিস্ট আপডেট করা
       } else {
         alert('Failed to add category');
@@ -111,6 +119,15 @@ export default function GiftCategoriesPage() {
                   className="w-full bg-[#18181b] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Category Icon</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => setIconFile(e.target.files?.[0] || null)}
+                  className="w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 transition-all"
+                />
+              </div>
               <button 
                 type="submit"
                 disabled={saving || !newCategoryName.trim()}
@@ -145,7 +162,11 @@ export default function GiftCategoriesPage() {
                   {categories.map((cat, idx) => (
                     <li key={cat.id || idx} className="flex items-center justify-between px-6 py-4 hover:bg-[#18181b] transition-colors group">
                       <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                        {cat.icon ? (
+                          <img src={cat.icon.startsWith('/') ? `${API_BASE_URL}${cat.icon}` : cat.icon} alt={cat.name} className="w-8 h-8 rounded-lg object-cover bg-gray-800" />
+                        ) : (
+                          <div className="w-2 h-2 rounded-full bg-purple-500 mx-3"></div>
+                        )}
                         <span className="text-gray-200 font-medium">{cat.name}</span>
                       </div>
                       <div className="flex items-center gap-4">

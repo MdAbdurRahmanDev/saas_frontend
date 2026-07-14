@@ -10,6 +10,7 @@ export default function BalanceSettingPage() {
   const [diamondTopupRate, setDiamondTopupRate] = useState<number>(500);
   const [diamondWithdrawRate, setDiamondWithdrawRate] = useState<number>(400);
   const [beansTopupRate, setBeansTopupRate] = useState<number>(300);
+  const [defaultBalance, setDefaultBalance] = useState<string>('beans');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -31,6 +32,7 @@ export default function BalanceSettingPage() {
           setDiamondTopupRate(data.diamond_topup_rate ?? 500);
           setDiamondWithdrawRate(data.diamond_withdraw_rate ?? 400);
           setBeansTopupRate(data.beans_topup_rate ?? 300);
+          setDefaultBalance(data.default_balance ?? 'beans');
           fetchedFromServer = true;
         }
       } 
@@ -41,6 +43,7 @@ export default function BalanceSettingPage() {
           const parsed = JSON.parse(localSettings);
           setBeansActive(parsed.beansActive);
           setDiamondsActive(parsed.diamondsActive);
+          setDefaultBalance(parsed.defaultBalance || 'beans');
         } else {
           setBeansActive(true);
           setDiamondsActive(true);
@@ -53,6 +56,7 @@ export default function BalanceSettingPage() {
         const parsed = JSON.parse(localSettings);
         setBeansActive(parsed.beansActive);
         setDiamondsActive(parsed.diamondsActive);
+        setDefaultBalance(parsed.defaultBalance || 'beans');
       } else {
         setBeansActive(true);
         setDiamondsActive(true);
@@ -77,11 +81,12 @@ export default function BalanceSettingPage() {
           diamond_topup_rate: diamondTopupRate,
           diamond_withdraw_rate: diamondWithdrawRate,
           beans_topup_rate: beansTopupRate,
+          default_balance: beansActive && diamondsActive ? defaultBalance : (beansActive ? 'beans' : (diamondsActive ? 'diamonds' : '')),
         }),
       });
 
       // Save locally as fallback since backend might not be ready
-      localStorage.setItem('balanceSettings', JSON.stringify({ beansActive, diamondsActive }));
+      localStorage.setItem('balanceSettings', JSON.stringify({ beansActive, diamondsActive, defaultBalance }));
 
       if (res.ok) {
         toast.success('Balance settings saved successfully!');
@@ -144,6 +149,39 @@ export default function BalanceSettingPage() {
               <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
             </label>
           </div>
+          
+          {beansActive && diamondsActive && (
+            <div className="flex items-center justify-between p-4 bg-[#18181b] rounded-lg border border-gray-800 mt-4">
+              <div>
+                <h3 className="font-semibold text-white">Default Balance</h3>
+                <p className="text-sm text-gray-500 mt-1">Choose which balance should be the main default for users.</p>
+              </div>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer gap-2">
+                  <input
+                    type="radio"
+                    name="default_balance"
+                    value="beans"
+                    checked={defaultBalance === 'beans'}
+                    onChange={(e) => setDefaultBalance(e.target.value)}
+                    className="w-4 h-4 text-green-500 bg-gray-700 border-gray-600 focus:ring-green-500 focus:ring-2"
+                  />
+                  <span className="text-white text-sm font-medium">Beans</span>
+                </label>
+                <label className="flex items-center cursor-pointer gap-2">
+                  <input
+                    type="radio"
+                    name="default_balance"
+                    value="diamonds"
+                    checked={defaultBalance === 'diamonds'}
+                    onChange={(e) => setDefaultBalance(e.target.value)}
+                    className="w-4 h-4 text-green-500 bg-gray-700 border-gray-600 focus:ring-green-500 focus:ring-2"
+                  />
+                  <span className="text-white text-sm font-medium">Diamonds</span>
+                </label>
+              </div>
+            </div>
+          )}
           
         </div>
       </div>

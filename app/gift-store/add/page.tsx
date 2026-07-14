@@ -12,6 +12,7 @@ export default function AddGiftPage() {
   const [description, setDescription] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [broadcastMessage, setBroadcastMessage] = useState(false);
+  const [duration, setDuration] = useState('unlimited');
   
   // ২. ইমেজের জন্য স্টেট
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -73,6 +74,7 @@ export default function AddGiftPage() {
     formData.append('description', description);
     formData.append('is_active', isActive.toString());
     formData.append('broadcast_message', broadcastMessage.toString());
+    formData.append('duration', duration);
     formData.append('image', imageFile);
 
     try {
@@ -186,6 +188,22 @@ export default function AddGiftPage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Duration</label>
+                <select 
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full bg-[#18181b] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="1 day">1 day</option>
+                  <option value="2 days">2 days</option>
+                  <option value="7 days">7 days</option>
+                  <option value="14 days">14 days</option>
+                  <option value="30 days">30 days</option>
+                  <option value="unlimited">Unlimited</option>
+                </select>
               </div>
 
               <div>

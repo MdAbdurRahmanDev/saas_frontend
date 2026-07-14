@@ -141,7 +141,7 @@ export default function GiftStorePage() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="w-16 h-16 flex items-center justify-center relative">
-                  <img src={gift.image_url} alt={gift.name} className="w-full h-full object-contain relative z-10" />
+                  <img src={gift.image_url.startsWith('/') ? `${API_BASE_URL}${gift.image_url}` : gift.image_url} alt={gift.name} className="w-full h-full object-contain relative z-10" />
                 </div>
                 
                 <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
