@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useState, useEffect } from 'react';
 
@@ -26,7 +28,7 @@ export default function FAQSettings() {
 
   const fetchFaqs = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/faqs');
+      const res = await fetch(`${API_BASE_URL}/api/faqs`);
       if (res.ok) {
         const data = await res.json();
         setFaqs(data || []);
@@ -44,8 +46,8 @@ export default function FAQSettings() {
 
     try {
       const url = editingId 
-        ? `http://localhost:8080/api/faqs/${editingId}`
-        : 'http://localhost:8080/api/faqs';
+        ? `${API_BASE_URL}/api/faqs/${editingId}`
+        : `${API_BASE_URL}/api/faqs`;
       
       const method = editingId ? 'PUT' : 'POST';
 
@@ -69,7 +71,7 @@ export default function FAQSettings() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this FAQ?')) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/faqs/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE_URL}/api/faqs/${id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchFaqs();
       }

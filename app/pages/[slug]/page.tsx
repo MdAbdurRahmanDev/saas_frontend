@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,7 +30,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
     const fetchPageContent = async () => {
       try {
         // Fetch from API
-        const res = await fetch(`http://localhost:8080/api/pages/${slug}`);
+        const res = await fetch(`${API_BASE_URL}/api/pages/${slug}`);
         if (res.ok) {
           const data = await res.json();
           setContent(data.content || '');
@@ -48,7 +50,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
     setMessage({ text: '', type: '' });
 
     try {
-      const res = await fetch(`http://localhost:8080/api/pages/${slug}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pages/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),

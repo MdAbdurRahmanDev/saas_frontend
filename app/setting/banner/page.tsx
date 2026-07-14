@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useState, useEffect } from 'react';
 
@@ -28,8 +30,8 @@ export default function BannerSettingPage() {
   const fetchData = async () => {
     try {
       const [bannersRes, settingsRes] = await Promise.all([
-        fetch('http://localhost:8080/api/banners'),
-        fetch('http://localhost:8080/api/settings/banner')
+        fetch(`${API_BASE_URL}/api/banners`),
+        fetch(`${API_BASE_URL}/api/settings/banner`)
       ]);
 
       if (bannersRes.ok) {
@@ -51,7 +53,7 @@ export default function BannerSettingPage() {
     const newValue = !bannersEnabled;
     setBannersEnabled(newValue);
     try {
-      await fetch('http://localhost:8080/api/settings/banner', {
+      await fetch(`${API_BASE_URL}/api/settings/banner`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ banners_enabled: newValue }),
@@ -64,7 +66,7 @@ export default function BannerSettingPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this banner?')) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/banners/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE_URL}/api/banners/${id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchData();
       }
@@ -84,7 +86,7 @@ export default function BannerSettingPage() {
       formData.append('link', newLink);
       formData.append('status', newStatus);
 
-      const res = await fetch('http://localhost:8080/api/banners', {
+      const res = await fetch(`${API_BASE_URL}/api/banners`, {
         method: 'POST',
         body: formData,
       });
@@ -154,7 +156,7 @@ export default function BannerSettingPage() {
           banners.map(banner => (
             <div key={banner.id} className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] shadow-xl overflow-hidden group">
               <div className="w-full h-40 bg-black/40 relative">
-                 <img src={`http://localhost:8080${banner.image}`} alt="Banner" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                 <img src={`${API_BASE_URL}${banner.image}`} alt="Banner" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                  <div className="absolute top-3 right-3">
                    <span className={`px-2.5 py-1 text-xs font-bold uppercase rounded backdrop-blur-md border ${
                      banner.status === 'Active' ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'

@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useState, useEffect } from 'react';
 
@@ -18,7 +20,7 @@ export default function HelpCenterSettings() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/settings/help-center');
+      const response = await fetch(`${API_BASE_URL}/api/settings/help-center`);
       if (response.ok) {
         const data = await response.json();
         setLiveChatEnabled(data.live_chat_enabled || false);
@@ -37,7 +39,7 @@ export default function HelpCenterSettings() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('http://localhost:8080/api/settings/help-center', {
+      const response = await fetch(`${API_BASE_URL}/api/settings/help-center`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

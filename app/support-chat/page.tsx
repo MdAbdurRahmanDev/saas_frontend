@@ -1,4 +1,6 @@
 "use client";
+import { API_BASE_URL } from '@/utils/api';
+
 
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -83,8 +85,8 @@ export default function SupportChatPage() {
   const fetchSessions = async () => {
     try {
       const [activeRes, solvedRes] = await Promise.all([
-        fetch('http://localhost:8080/api/support/chats?status=active'),
-        fetch('http://localhost:8080/api/support/chats?status=solved'),
+        fetch(`${API_BASE_URL}/api/support/chats?status=active`),
+        fetch(`${API_BASE_URL}/api/support/chats?status=solved`),
       ]);
 
       if (activeRes.ok) setActiveSessions((await activeRes.json()) || []);
@@ -96,7 +98,7 @@ export default function SupportChatPage() {
 
   const fetchMessages = async (userId: string) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/support/messages/${userId}?reader=admin`);
+      const res = await fetch(`${API_BASE_URL}/api/support/messages/${userId}?reader=admin`);
       if (res.ok) {
         const data = await res.json();
         setMessages(data || []);
@@ -118,7 +120,7 @@ export default function SupportChatPage() {
     if (!newMessage.trim() || !activeSession) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/support/messages/${activeSession.user_id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/support/messages/${activeSession.user_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sender: 'admin', content: newMessage }),
@@ -139,7 +141,7 @@ export default function SupportChatPage() {
     if (!activeSession) return;
     setIsSolving(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/support/chats/${activeSession.user_id}/solve`, {
+      const res = await fetch(`${API_BASE_URL}/api/support/chats/${activeSession.user_id}/solve`, {
         method: 'PUT',
       });
 
