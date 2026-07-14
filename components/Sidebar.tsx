@@ -107,7 +107,9 @@ const menuConfig: MenuItem[] = [
       { name: 'Applications', href: '/resellers/applications' },
       { name: 'Add New', href: '/resellers/add' },
       { name: 'Reports', href: '/resellers/reports' },
-      { name: 'Coin Transfer', href: '/resellers/transfer' }
+      { name: 'Coin Transfer', href: '/resellers/transfer' },
+      { name: 'Reseller Packs', href: '/resellers/packs' },
+      { name: 'Payment Methods', href: '/resellers/payment-methods' }
     ]
   },
   {

@@ -18,3 +18,11 @@ export const fetchBalanceSettings = async () => {
   }
   return response.json();
 };
+
+export const fetchGiftOrders = async () => {
+  const response = await fetch(`${BASE_URL}/admin/gift-orders`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch gift orders');
+  }
+  return response.json();
+};

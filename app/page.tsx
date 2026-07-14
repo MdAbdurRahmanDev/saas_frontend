@@ -1,4 +1,4 @@
-import { fetchUsers, fetchBalanceSettings } from '@/services/api';
+import { fetchUsers, fetchBalanceSettings, fetchGiftOrders } from '@/services/api';
 
 export default async function Home() {
   let totalUsers = 0;
@@ -7,6 +7,12 @@ export default async function Home() {
   let deactiveUsers = 0;
   let beansActive = true;
   let diamondsActive = true;
+  let defaultBalance = 'diamonds';
+  let totalSalesBeans = 0;
+  let totalSalesDiamonds = 0;
+  let totalDeductedBeans = 0;
+  let totalDeductedDiamonds = 0;
+  let totalOrders = 0;
 
   try {
     // API থেকে ইউজারদের ডেটা ফেচ করে স্ট্যাটাস অনুযায়ী টোটাল এবং অন্যান্য কাউন্ট বের করা হচ্ছে
@@ -27,10 +33,37 @@ export default async function Home() {
     if (balanceSettings) {
       beansActive = balanceSettings.beans_active;
       diamondsActive = balanceSettings.diamonds_active;
+      defaultBalance = balanceSettings.default_balance || 'diamonds';
     }
   } catch (error) {
     console.error("Failed to fetch balance settings:", error);
   }
+
+  try {
+    const ordersData = await fetchGiftOrders();
+    if (ordersData) {
+      totalSalesBeans = ordersData.totalSalesBeans || 0;
+      totalSalesDiamonds = ordersData.totalSalesDiamonds || 0;
+      totalDeductedBeans = ordersData.totalDeductedBeans || 0;
+      totalDeductedDiamonds = ordersData.totalDeductedDiamonds || 0;
+      totalOrders = (ordersData.orders || []).length;
+    }
+  } catch (error) {
+    console.error("Failed to fetch orders data:", error);
+  }
+
+  let showCurrency = 'both';
+  if (beansActive && diamondsActive) {
+    showCurrency = defaultBalance;
+  } else if (beansActive) {
+    showCurrency = 'beans';
+  } else if (diamondsActive) {
+    showCurrency = 'diamonds';
+  }
+
+  const displayTotalSales = showCurrency === 'beans' ? totalSalesBeans : totalSalesDiamonds;
+  const displayTotalDeducted = showCurrency === 'beans' ? totalDeductedBeans : totalDeductedDiamonds;
+  const displayCurrencyName = showCurrency === 'beans' ? 'Beans' : 'Diamonds';
 
   return (
     <div className="flex flex-col space-y-6">
@@ -143,45 +176,11 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Card 4 */}
-        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--card-bg-pink)] rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
-          <div className="w-8 h-8 rounded-lg bg-[var(--card-bg-pink)] text-pink-400 flex items-center justify-center mb-4 relative z-10">
-            📡
-          </div>
-          <div className="relative z-10">
-            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Active Streams</div>
-            <div className="text-2xl font-bold text-white">0</div>
-          </div>
-        </div>
 
-        {/* Card 5 */}
-        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#1e3a8a] rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
-          <div className="w-8 h-8 rounded-lg bg-[#1e3a8a] text-blue-300 flex items-center justify-center mb-4 relative z-10">
-            👤
-          </div>
-          <div className="relative z-10">
-            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Admin Deposits</div>
-            <div className="text-2xl font-bold text-white">336,207,038 <span className="text-sm">Coins</span></div>
-          </div>
-        </div>
-
-        {/* Card 6 */}
-        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--card-bg-yellow)] rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
-          <div className="w-8 h-8 rounded-lg bg-[var(--card-bg-yellow)] text-yellow-400 flex items-center justify-center mb-4 relative z-10">
-            🔄
-          </div>
-          <div className="relative z-10">
-            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Reseller Transfers</div>
-            <div className="text-2xl font-bold text-white">0 <span className="text-sm">Coins</span></div>
-          </div>
-        </div>
       </div>
 
-      {/* Grid 2: Bottom 4 Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Grid 2: Bottom 5 Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
           <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--card-bg-green)] rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
           <div className="w-8 h-8 rounded-lg bg-[var(--card-bg-green)] text-green-400 flex items-center justify-center mb-4 relative z-10">
@@ -189,7 +188,18 @@ export default async function Home() {
           </div>
           <div className="relative z-10">
             <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Total Sales</div>
-            <div className="text-2xl font-bold text-white">0 <span className="text-sm font-normal">Diamonds</span></div>
+            <div className="text-2xl font-bold text-white">{displayTotalSales.toLocaleString()} <span className="text-sm font-normal">{displayCurrencyName}</span></div>
+          </div>
+        </div>
+
+        <div className="bg-[var(--card-bg)] rounded-xl p-5 border border-gray-800 relative overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-red-900 rounded-bl-full opacity-20 -mr-10 -mt-10 blur-xl"></div>
+          <div className="w-8 h-8 rounded-lg bg-red-900/40 text-red-400 flex items-center justify-center mb-4 relative z-10">
+            📉
+          </div>
+          <div className="relative z-10">
+            <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Total Deducted</div>
+            <div className="text-2xl font-bold text-white">{displayTotalDeducted.toLocaleString()} <span className="text-sm font-normal">{displayCurrencyName}</span></div>
           </div>
         </div>
         
@@ -200,7 +210,7 @@ export default async function Home() {
           </div>
           <div className="relative z-10">
             <div className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-wider mb-1">Total Orders</div>
-            <div className="text-2xl font-bold text-white">0</div>
+            <div className="text-2xl font-bold text-white">{totalOrders.toLocaleString()}</div>
           </div>
         </div>
 
