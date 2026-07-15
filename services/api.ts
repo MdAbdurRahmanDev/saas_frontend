@@ -1,6 +1,6 @@
 // API services to connect to the backend
 
-const BASE_URL = 'http://tu286r0hary5blh7i51xiv6g.31.97.237.130.sslip.io/api';
+const BASE_URL = 'https://dramalover.xyz/api';
 
 export const fetchUsers = async () => {
   const response = await fetch(`${BASE_URL}/users`);
